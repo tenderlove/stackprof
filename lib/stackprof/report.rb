@@ -83,17 +83,19 @@ module StackProf
       end
     end
 
-    def view_flamegraph_in_browser(filepath)
+    def print_flamegraph(out, filename = "none")
       raise "profile does not include raw samples (add `raw: true` to collecting StackProf.run)" unless raw = data[:raw]
       profile_b64 = Base64.strict_encode64(JSON.generate(data))
-      filename = File.basename(filepath)
       js_source = "speedscope.loadFileFromBase64('#{filename}', '#{profile_b64}')"
+      out.write(js_source)
+    end
 
+    def view_flamegraph_in_browser(filepath)
       tmpdir = Dir.mktmpdir("stackprof")
 
       tmp_js_path = File.join(tmpdir, "profile.js")
       File.open(tmp_js_path, "w") do |tmp_js_file|
-        tmp_js_file.write(js_source)
+        print_flamegraph(tmp_js_file, File.basename(filepath))
       end
       puts "Creating temp file #{tmp_js_path}"
 
